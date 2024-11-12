@@ -1,4 +1,5 @@
 import streamlit as st
+from fpdf import FPDF
 
 # Define your knowledge base with questions and scoring
 knowledge_base = {
@@ -60,6 +61,38 @@ knowledge_base = {
     }
 }
 
+# Function to generate PDF report
+def generate_pdf(answers, result):
+    # Create instance of FPDF class and add a page
+    pdf = FPDF()
+    pdf.add_page()
+
+    # Set font
+    pdf.set_font("Arial", size=12)
+
+    # Title
+    pdf.cell(200, 10, txt="Mood Health Check Report", ln=True, align='C')
+
+    # Add answers to the report
+    pdf.ln(10)  # Line break
+    pdf.cell(200, 10, txt="Your Responses:", ln=True)
+
+    for question_key, answer in answers.items():
+        question = knowledge_base.get(question_key, {}).get('text', '')
+        pdf.cell(200, 10, txt=f"{question} {answer}", ln=True)
+
+    # Add the result to the report
+    pdf.ln(10)  # Line break
+    pdf.cell(200, 10, txt="Results:", ln=True)
+    pdf.cell(200, 10, txt=result["text"], ln=True)
+    pdf.cell(200, 10, txt=result["recommendation"], ln=True)
+
+    # Save the pdf to a file
+    pdf_output = "/tmp/mood_health_report.pdf"
+    pdf.output(pdf_output)
+
+    return pdf_output
+
 # Define the Streamlit app
 def app():
     # Set the app title and page icon
@@ -113,6 +146,15 @@ def app():
             unsafe_allow_html=True
         )
         st.write(result.get("recommendation", ""))
+
+        # Generate PDF report and provide a download link
+        pdf_file = generate_pdf(answers, result)
+        st.download_button(
+            label="Download Report as PDF",
+            data=open(pdf_file, "rb").read(),
+            file_name="mood_health_report.pdf",
+            mime="application/pdf"
+        )
     
 # Run the app
 if __name__ == "__main__":
