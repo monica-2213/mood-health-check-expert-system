@@ -84,7 +84,7 @@ def app():
     answers = {}
     score = 0
     
-    # Display all questions at once
+    # Display all questions
     for question_key, question_info in knowledge_base.items():
         if "options" in question_info:
             question = question_info["text"]
@@ -93,24 +93,26 @@ def app():
             answers[question_key] = answer
             score += question_info["options"][answer]  # Add the score of the selected answer
     
-    # Determine the result based on the score
-    if score <= 2:
-        result = knowledge_base["result_no_depression"]
-    elif 3 <= score <= 6:
-        result = knowledge_base["result_mild_depression"]
-    else:
-        result = knowledge_base["result_severe_depression"]
+    # Button to check results
+    if st.button("Check Results"):
+        # Determine the result based on the score
+        if score <= 2:
+            result = knowledge_base["result_no_depression"]
+        elif 3 <= score <= 6:
+            result = knowledge_base["result_mild_depression"]
+        else:
+            result = knowledge_base["result_severe_depression"]
 
-    # Display the result
-    st.markdown(
-        f"""
-        <div style='background-color: #F18A85; padding: 10px'>
-            <h3 style='color: white'>{result["text"]}</h3>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-    st.write(result.get("recommendation", ""))
+        # Display the result
+        st.markdown(
+            f"""
+            <div style='background-color: #F18A85; padding: 10px'>
+                <h3 style='color: white'>{result["text"]}</h3>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        st.write(result.get("recommendation", ""))
     
 # Run the app
 if __name__ == "__main__":
