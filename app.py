@@ -62,7 +62,7 @@ knowledge_base = {
 }
 
 # Function to generate PDF report
-def generate_pdf(answers, result):
+def generate_pdf(answers, result, score):
     # Create instance of FPDF class and add a page
     pdf = FPDF()
     pdf.add_page()
@@ -73,19 +73,25 @@ def generate_pdf(answers, result):
     # Title
     pdf.cell(200, 10, txt="Mood Health Check Report", ln=True, align='C')
 
+    # Add a line break
+    pdf.ln(10)
+
+    # Add score to the report
+    pdf.cell(200, 10, txt=f"Total Score: {score}", ln=True, align='C')
+    
     # Add answers to the report
     pdf.ln(10)  # Line break
     pdf.cell(200, 10, txt="Your Responses:", ln=True)
 
     for question_key, answer in answers.items():
         question = knowledge_base.get(question_key, {}).get('text', '')
-        pdf.cell(200, 10, txt=f"{question} {answer}", ln=True)
+        pdf.multi_cell(0, 10, txt=f"{question} {answer}", align='L')
 
     # Add the result to the report
     pdf.ln(10)  # Line break
     pdf.cell(200, 10, txt="Results:", ln=True)
-    pdf.cell(200, 10, txt=result["text"], ln=True)
-    pdf.cell(200, 10, txt=result["recommendation"], ln=True)
+    pdf.multi_cell(0, 10, txt=result["text"], align='L')
+    pdf.multi_cell(0, 10, txt=result["recommendation"], align='L')
 
     # Save the pdf to a file
     pdf_output = "/tmp/mood_health_report.pdf"
@@ -148,7 +154,7 @@ def app():
         st.write(result.get("recommendation", ""))
 
         # Generate PDF report and provide a download link
-        pdf_file = generate_pdf(answers, result)
+        pdf_file = generate_pdf(answers, result, score)
         st.download_button(
             label="Download Report as PDF",
             data=open(pdf_file, "rb").read(),
