@@ -1,6 +1,4 @@
 import streamlit as st
-import pandas as pd
-from fpdf import FPDF
 
 # Define your knowledge base as a dictionary
 knowledge_base = {
@@ -116,22 +114,32 @@ def app():
 
     # Get the result based on answers
     result_key = answers.get("question_1")  # Start from question_1
-    while result_key and "result" not in result_key:  # Traverse until we hit a result
-        result_key = knowledge_base[result_key]["options"].get(answers.get(result_key))
+    
+    # Traverse through the knowledge base until a result is found
+    while result_key and "result" not in result_key:
+        # Ensure that the result_key is valid
+        next_key = knowledge_base.get(result_key)
+        if next_key and "options" in next_key:
+            result_key = next_key["options"].get(answers.get(result_key))
+        else:
+            break
 
     # Get final result
-    result = knowledge_base[result_key]
+    result = knowledge_base.get(result_key, {})
     
-    # Display the result
-    st.markdown(
-        f"""
-        <div style='background-color: #F18A85; padding: 10px'>
-            <h3 style='color: white'>{result["text"]}</h3>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-    st.write(result["recommendation"])
+    if result:
+        # Display the result
+        st.markdown(
+            f"""
+            <div style='background-color: #F18A85; padding: 10px'>
+                <h3 style='color: white'>{result["text"]}</h3>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        st.write(result.get("recommendation", ""))
+    else:
+        st.write("There was an error processing the results.")
 
 # Run the app
 if __name__ == "__main__":
