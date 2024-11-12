@@ -83,29 +83,15 @@ knowledge_base = {
     }
 }
 
-# Define a function to generate the PDF report
-def generate_pdf_report(result):
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
-    pdf.cell(200, 10, txt="Depression Detection Results", ln=1, align="C")
-    pdf.cell(200, 10, txt=" ", ln=1)
-    pdf.cell(200, 10, txt=result["text"], ln=1)
-    pdf.cell(200, 10, txt=" ", ln=1)
-    pdf.cell(200, 10, txt="Recommendation:", ln=1)
-    pdf.cell(200, 10, txt=result["recommendation"], ln=1)
-    pdf.output("Depression_Detection_Results.pdf")
-
 # Define the Streamlit app
 def app():
     # Set the app title and page icon
     st.set_page_config(page_title="Early Depression Detection", page_icon=":smiley:")
-    
-    # Set the app header and subheader
+    # Set the app header
     st.header("Early Depression Detection")
+    # Set the app subheader
     st.subheader("Answer the following questions to detect depression early")
-    
-    # Set the background color
+    # Set the app background color
     st.markdown(
         """
         <style>
@@ -117,37 +103,35 @@ def app():
         unsafe_allow_html=True
     )
     
+    # Initialize the answers dictionary
     answers = {}
-    current_question = "question_1"
     
-    while current_question is not None:
-        question = knowledge_base[current_question]["text"]
-        options = list(knowledge_base[current_question]["options"].keys())
-        
-        answer = st.radio(question, options)
-        
-        if st.button("Next"):
-            answers[current_question] = answer
-            current_question = knowledge_base[current_question]["options"].get(answer)
-        else:
-            break
+    # Display all questions at once
+    for question_key, question_info in knowledge_base.items():
+        if "options" in question_info:
+            question = question_info["text"]
+            options = list(question_info["options"].keys())
+            answer = st.radio(question, options, key=question_key)
+            answers[question_key] = answer
 
+    # Get the result based on answers
+    result_key = answers.get("question_1")  # Start from question_1
+    while result_key and "result" not in result_key:  # Traverse until we hit a result
+        result_key = knowledge_base[result_key]["options"].get(answers.get(result_key))
+
+    # Get final result
+    result = knowledge_base[result_key]
+    
     # Display the result
-    if current_question and "result" in current_question:
-        result = knowledge_base[current_question]
-        st.markdown(
-            f"""
-            <div style='background-color: #F18A85; padding: 10px'>
-                <h3 style='color: white'>{result["text"]}</h3>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-        st.write(result["recommendation"])
-        
-        if st.button("Generate PDF report"):
-            generate_pdf_report(result)
-            st.success("PDF report generated successfully!")
+    st.markdown(
+        f"""
+        <div style='background-color: #F18A85; padding: 10px'>
+            <h3 style='color: white'>{result["text"]}</h3>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    st.write(result["recommendation"])
 
 # Run the app
 if __name__ == "__main__":
